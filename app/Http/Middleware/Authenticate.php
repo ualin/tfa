@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\User;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
+use Illuminate\Support\Facades\Session;
 
 class Authenticate extends Middleware
 {
@@ -14,7 +16,16 @@ class Authenticate extends Middleware
      */
     protected function redirectTo($request)
     {
-        if (! $request->expectsJson()) {
+        if (! $request->expectsJson())
+        {
+            $identifiedUser = Session::get('user_identified');
+            $user = User::find($identifiedUser);
+
+            if($user && $user->two_factor_pass)
+            {
+                // two factor authentication step 2 needs to be resolved 
+                return route('otp.index');
+            }
             return route('login');
         }
     }
